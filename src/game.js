@@ -11,7 +11,7 @@
   // Хронометраж (діти 9–14, ~30 хв). Можна перевизначити в pack.js → timing.
   const TM = Object.assign({
     targetMinutes: 30, chatSeconds: 25, bossChatSeconds: 18, sortSeconds: 9, finalSortSeconds: 7,
-    scanSeconds: 150, lockSeconds: 75, helpAfterErrors: 2, missionMinutes: [4.5, 4.5, 3.5, 4, 3.5, 4.5, 3],
+    scanSeconds: 150, lockSeconds: 75, helpAfterErrors: 2, missionMinutes: [4.5, 4.5, 3.5, 4, 3.5, 5, 2.5],
   }, P.timing || {});
 
   const S = {
@@ -95,6 +95,11 @@
     clearTimers();
     const sc = scene();
     SS = { type: sc.type, err: 0 };
+    if (sc.type === 'scan' && sc.variants) {
+      // випадкове фото з набору (без тих, що не завантажились)
+      const pool = sc.variants.filter((v) => !v.broken);
+      Object.assign(sc, pool[Math.floor(Math.random() * pool.length)] || sc.variants[0]);
+    }
     if (sc.type === 'scan') {
       SS.tool = null; SS.found = []; SS.time = TM.scanSeconds;
       SS.total = sc.parts.filter((p) => p.f).length;
@@ -253,6 +258,17 @@
     sceneClear(fake ? 'Фейк викрито!' : 'Правильно: це безпечно.');
   }
 
+  // Фото не знайдено на диску: беремо інший варіант, а необов'язкову сцену пропускаємо
+  window.__cqImgFail = (el) => {
+    const sc = scene();
+    if (S.screen !== 'scene' || SS.type !== 'scan' || !el.src.endsWith(sc.img)) return;
+    if (sc.variants) {
+      const v = sc.variants.find((x) => x.img === sc.img); if (v) v.broken = true;
+      if (sc.variants.some((x) => !x.broken)) { startScene(); return; }
+    }
+    if (sc.optional) { clearTimers(); S.sc++; if (S.sc >= mission().scenes.length) missionDone(); else startScene(); }
+  };
+
   // ---------- LOCK ----------
   function lockPick(idx) {
     const sc = scene();
@@ -306,10 +322,12 @@
       const evidence = SS.found.map((i) => `<div class="ev">${P.tools[sc.parts[i].f.tool].icon} ${sc.parts[i].f.why}</div>`).join('');
       return `<main class="scan">${head}
         <div class="scanwrap">
-          <div class="device d-${sc.device} ${SS.tool ? 'scanning' : ''}">${sc.device === 'photo' ? photoSvg() : ''}<div class="parts">${parts}</div><div class="beam"></div></div>
+          <div class="device d-${sc.device} ${SS.tool ? 'scanning' : ''}">${sc.device === 'photo'
+            ? `<div class="photobox" style="aspect-ratio:${sc.ar || '3 / 2'}">${sc.img ? `<img class="photo" src="${sc.img}" alt="" draggable="false" onerror="window.__cqImgFail && window.__cqImgFail(this)">` : photoSvg()}<div class="parts">${parts}</div></div>`
+            : `<div class="parts">${parts}</div>`}<div class="beam"></div></div>
           <div class="board card"><h3>Дошка доказів <span class="mono">${SS.found.length} / ?</span></h3>${evidence || '<div class="muted">Поки порожньо…</div>'}
             ${hintOn ? `<div class="helpnote">💡 Командир: спробуй <b>${P.tools[hintTool].icon} ${P.tools[hintTool].name}</b> — там ще є доказ.</div>` : ''}
-            <div class="verd"><button class="btn red ${hintVerdict === '1' ? 'hint' : ''}" data-act="verdict" data-v="1">⚠ ФЕЙК</button><button class="btn green ${hintVerdict === '0' ? 'hint' : ''}" data-act="verdict" data-v="0">✔ БЕЗПЕЧНО</button></div></div>
+            <div class="verd"><button class="btn green ${hintVerdict === '0' ? 'hint' : ''}" data-act="verdict" data-v="0">✔ БЕЗПЕЧНО</button><button class="btn red ${hintVerdict === '1' ? 'hint' : ''}" data-act="verdict" data-v="1">⚠ ФЕЙК</button></div></div>
         </div>
         <div class="tools">${tools}</div></main>`;
     }
@@ -368,7 +386,7 @@
     { id: 'm2', m: 2, name: 'Артем', x: 21.5, y: 17.6, look: { body: '#FF3B5C', hair: '#111', hat: '#2F6BFF' }, hello: 'Мені пише друг і терміново просить код із СМС… Що робити?!' },
     { id: 'm3', m: 3, name: 'Даня', x: 39, y: 6.5, look: { body: '#27D3F5', hair: '#f0d080' }, hello: 'Адмін «Світу Блоків» хоче мій пароль, бо інакше видалять акаунт! Допоможи!' },
     { id: 'm4', m: 4, name: 'Софійка', x: 7.5, y: 24.5, look: { body: '#ff8ad8', hair: '#3a2414', long: true }, hello: 'Новий друг просить моє фото і каже нікому не казати… Мені якось тривожно.' },
-    { id: 'm5', m: 5, name: 'Ліза', x: 39, y: 24.5, look: { body: '#FFD34D', hair: '#111', long: true }, hello: 'Я дослідила фото «Соні_2014». Здається, воно не справжнє. А ще мені прийшла погроза…' },
+    { id: 'm5', m: 5, name: 'Ліза', x: 39, y: 24.5, look: { body: '#FFD34D', hair: '#111', long: true }, hello: 'Я дослідила фото дітей на профілях «Соні_2014». Здається, вони не справжні. А ще мені прийшла погроза…' },
     { id: 'core', m: 6, name: 'Ядро «Соня_2014»', x: 25, y: 24, look: { body: '#FF3B5C', glow: true, skin: '#9aa3b5', hair: '#444', emoji: '🤖' } },
   ];
   const giverOf = (m) => NPCS.find((n) => n.m === m);
