@@ -1,0 +1,6 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    { "name": "cyberquest-web", "runtimeExecutable": "node", "runtimeArgs": ["tools/serve.js"], "port": 5173 }
+  ]
+}
