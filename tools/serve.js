@@ -3,12 +3,14 @@ const http = require('node:http');
 const https = require('node:https');
 const fs = require('node:fs');
 const path = require('node:path');
-const { networkInterfaces } = require('node:os');
+const { spawn } = require('node:child_process');
 const { parseArgs } = require('node:util');
+const { lanLinks, joinPage } = require('./lan-join');
 
 const { values } = parseArgs({ options: {
   lan: { type: 'boolean' }, port: { type: 'string', default: '5173' },
   cert: { type: 'string' }, key: { type: 'string' },
+  'open-qr': { type: 'boolean' },
 } });
 const port = Number(values.port);
 if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('Вкажіть порт від 1 до 65535.');
@@ -68,6 +70,11 @@ async function serve(req, res) {
     res.writeHead(302, { Location: '/' + url.search });
     return res.end();
   }
+  if (pathname === '/join' && values.lan && req.socket.remoteAddress === '127.0.0.1') {
+    const page = joinPage(lanLinks(protocol, port));
+    res.writeHead(200, { 'Content-Type': types['.html'], 'Cache-Control': 'no-store' });
+    return res.end(req.method === 'HEAD' ? undefined : page);
+  }
   const requested = pathname === '/' ? '/index.html' : pathname;
   const type = types[path.extname(requested)];
   try {
@@ -87,12 +94,18 @@ const tls = values.cert && { cert: fs.readFileSync(values.cert), key: fs.readFil
 const protocol = tls ? 'https' : 'http';
 const server = tls ? https.createServer(tls, serve) : http.createServer(serve);
 server.listen(port, values.lan ? '0.0.0.0' : '127.0.0.1', () => {
-  console.log(`${protocol}://localhost:${port}/`);
-  if (values.lan) {
-    for (const addresses of Object.values(networkInterfaces())) {
-      for (const { address, family, internal } of addresses) {
-        if (family === 'IPv4' && !internal) console.log(`${protocol}://${address}:${port}/`);
-      }
-    }
-  }
+  const local = `${protocol}://localhost:${port}/`;
+  console.log(local);
+  if (!values.lan) return;
+
+  for (const { name, url } of lanLinks(protocol, port)) console.log(`${name}: ${url}`);
+  const join = local + 'join';
+  console.log(`QR: ${join}`);
+  if (!values['open-qr'] || process.platform !== 'win32') return;
+
+  const browser = spawn(process.env.ComSpec || 'cmd.exe', ['/d', '/c', `start "" ${join}`], {
+    windowsVerbatimArguments: true, windowsHide: true, stdio: 'ignore',
+  });
+  browser.on('error', () => console.warn(`Open the QR page in your browser: ${join}`));
+  browser.unref();
 });
