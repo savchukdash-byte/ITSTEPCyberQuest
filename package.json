@@ -6,6 +6,7 @@
   "scripts": {
     "start": "electron .",
     "dev": "set CQ_DEV=1&& electron .",
+    "web": "node tools/serve.js",
     "dist": "electron-builder --win portable"
   },
   "devDependencies": {
@@ -15,7 +16,7 @@
   "build": {
     "appId": "ua.itstep.cyberquest",
     "productName": "CyberQuest",
-    "files": ["main.js", "preload.js", "src/**/*", "assets/logo.png"],
+    "files": ["main.js", "preload.js", "src/**/*"],
     "win": { "target": "portable", "artifactName": "CyberQuest.exe", "signAndEditExecutable": false }
   }
 }

@@ -1,6 +1,6 @@
 # Дизайн-система CyberQuest (напрям A+B)
 
-Рішення: **A «Неоновий детектив»** (атмосфера, арт, реклама) + **B «Хакерський HUD»** (інтерфейс гри). Референси: `assets/concepts/A-neon-detective.png`, `assets/concepts/B-hud-ui.png`. Логотип ITSTEP: `assets/logo.png` (білий).
+Рішення: **A «Неоновий детектив»** (атмосфера, арт, реклама) + **B «Хакерський HUD»** (інтерфейс гри). Референси: `assets/concepts/A-neon-detective.png`, `assets/concepts/B-hud-ui.png`. Логотип ITSTEP: `src/img/logo.png` (білий).
 
 ## Палітра
 | Токен | HEX | Використання |

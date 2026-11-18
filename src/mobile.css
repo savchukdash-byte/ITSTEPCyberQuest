@@ -1,0 +1,192 @@
+.phone-layout body {
+  font-size: 16px;
+}
+
+.phone-layout #app {
+  height: 100dvh;
+  padding: max(8px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right))
+    max(8px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+}
+
+.phone-layout .desktop-only { display: none; }
+.phone-layout .mobile-only { display: inline; }
+.phone-layout button, .phone-layout .part { touch-action: manipulation; }
+
+.phone-layout header {
+  display: grid;
+  grid-template-columns: auto auto minmax(64px, 1fr) auto auto auto;
+  grid-template-areas: "logo title title title mentor sound" "keys keys shield score time time";
+  gap: 3px 6px;
+  padding-bottom: 8px;
+}
+
+.phone-layout header img { grid-area: logo; height: 34px; cursor: auto; }
+.phone-layout header .ttl { grid-area: title; min-width: 0; font-size: 16px; }
+.phone-layout header .ttl small { font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.phone-layout header .sp, .phone-layout header .tm:empty { display: none; }
+.phone-layout .icon[data-act="mentor"] { grid-area: mentor; }
+.phone-layout .icon[data-act="mute"] { grid-area: sound; }
+.phone-layout .icon { font-size: 16px; }
+.phone-layout .shield { grid-area: shield; width: 100%; margin: 0; gap: 3px; font-size: 12px; }
+.phone-layout .shield .bar { height: 8px; }
+.phone-layout .score { grid-area: score; min-width: 0; font-size: 14px; }
+.phone-layout .score small { font-size: 10px; margin-left: 2px; }
+.phone-layout .tm { grid-area: time; min-width: 0; margin-left: 2px; font-size: 12px; white-space: nowrap; }
+.phone-layout .tm small { font-size: 10px; }
+.phone-layout .keys { grid-area: keys; gap: 2px; }
+.phone-layout .key { width: 14px; height: 19px; border-radius: 5px; border-width: 1px; font-size: 10px; }
+
+.phone-layout main {
+  gap: 9px;
+  padding: 4px 2px;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.phone-layout main > * { flex-shrink: 0; }
+.phone-layout .center { width: 100%; }
+.phone-layout .row { flex-wrap: wrap; gap: 6px; }
+.phone-layout .card { padding: 12px; border-radius: 16px; backdrop-filter: none; }
+.phone-layout .stack { gap: 10px; }
+.phone-layout h1, .phone-layout .glitch { font-size: clamp(27px, 8vw, 48px); overflow-wrap: anywhere; }
+.phone-layout h2 { font-size: clamp(20px, 5vw, 26px); }
+.phone-layout h3 { font-size: 17px; }
+.phone-layout .hero .herologo { height: 65px; }
+.phone-layout .hero .card { width: min(100%, 360px); }
+.phone-layout .btn { min-height: 44px; padding: 8px 12px; }
+.phone-layout .btn.big { font-size: 17px; padding: 12px 18px; max-width: 100%; }
+.phone-layout input[type="text"] { font-size: 16px; padding: 10px 12px; }
+.phone-layout .chip { padding: 4px 8px; gap: 5px; font-size: 12px; }
+.phone-layout .chip i { width: 7px; height: 7px; flex: none; }
+.phone-layout .overlay { padding: 12px; }
+.phone-layout .overlay .card { max-height: 100%; overflow: auto; }
+.phone-layout .toast { top: calc(68px + env(safe-area-inset-top)); width: calc(100% - 24px); padding: 9px 10px; font-size: 14px; }
+
+.phone-layout main.intro { flex-direction: column; align-items: stretch; }
+.phone-layout .intro .lock { flex: none; min-height: 0; max-width: none; padding: 15px; border-radius: 24px; }
+.phone-layout .clock { font-size: clamp(36px, 12vw, 64px); margin-bottom: 10px; }
+.phone-layout .note { gap: 8px; padding: 8px; margin-bottom: 7px; border-radius: 12px; font-size: 14px; }
+.phone-layout .note i { flex: none; width: 30px; height: 30px; }
+.phone-layout .cmd { gap: 8px; }
+.phone-layout .cmd p { font-size: 17px; }
+
+.phone-layout .worldscreen { margin: 0; padding: 0; overflow: hidden; border-radius: 14px; }
+.phone-layout #worldhost canvas { touch-action: manipulation; }
+.phone-layout .objective { top: 8px; left: 8px; right: 8px; max-width: 420px; padding: 7px 9px; font-size: 14px; pointer-events: none; }
+.phone-layout .objective b { font-size: 10px; }
+.phone-layout .controls { left: 8px; bottom: 12px; max-width: min(250px, calc(100% - 135px)); padding: 5px 7px; font-size: 12px; pointer-events: none; }
+.phone-layout .dlg { width: calc(100% - 16px); bottom: 8px; max-height: calc(100% - 16px); padding: 12px; overflow: auto; }
+.phone-layout .dname { margin: 0 0 7px; padding: 5px 9px; font-size: 13px; }
+.phone-layout .dtext { min-height: 0; font-size: 17px; }
+.phone-layout .dbtns { flex-wrap: wrap; gap: 6px; }
+
+.phone-layout .caseboard {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: start;
+  align-items: start;
+  gap: 14px 8px;
+  flex: none;
+  padding: 14px 8px;
+  border-radius: 14px;
+}
+
+.phone-layout .caseboard svg { display: none; }
+.phone-layout .caseboard .pin { position: relative; inset: auto; width: auto; min-height: 0; padding: 8px; transform: none; overflow-wrap: anywhere; }
+.phone-layout .pin .ph { font-size: 24px; }
+.phone-layout .pin b { font-size: 14px; }
+.phone-layout .pin.suspect { grid-column: 1 / -1; }
+
+.phone-layout .scene-meta { flex-wrap: nowrap; }
+.phone-layout .scene-meta .chip:first-child { min-width: 0; }
+.phone-layout .scene-meta .chip.ghost, .phone-layout .stime { flex: none; }
+.phone-layout .scene-meta .sp { display: none; }
+.phone-layout .stime { margin-left: auto; font-size: 18px; }
+.phone-layout .scanwrap { flex: none; flex-direction: column; gap: 10px; }
+.phone-layout .scan .tools {
+  order: 0;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+  padding: 4px;
+  border-radius: 12px;
+  background: var(--bg);
+}
+
+.phone-layout .toolbtn { gap: 6px; min-height: 44px; padding: 5px 7px; font-size: 13px; border-radius: 10px; }
+.phone-layout .toolbtn small { display: none; }
+.phone-layout .toolbtn .ti { font-size: 18px; }
+.phone-layout .device { flex: none; min-width: 0; padding: 8px; border-radius: 14px; overflow-wrap: anywhere; }
+.phone-layout .device.d-photo { padding: 0; }
+.phone-layout .parts { gap: 4px; }
+.phone-layout .part:not(.k-spot) { min-height: 44px; padding: 5px 7px; }
+.phone-layout .k-title, .phone-layout .k-name { font-size: 19px; }
+.phone-layout .k-stat { font-size: 15px; }
+.phone-layout .k-avatar { width: 64px; height: 64px; font-size: 39px; }
+.phone-layout .k-msg { max-width: 95%; }
+.phone-layout .board { min-width: 0; overflow: visible; }
+.phone-layout .verd .btn { padding: 5px; font-size: 14px; }
+
+.phone-layout .chatwrap { flex: none; flex-direction: column; gap: 8px; }
+.phone-layout .phone { flex: none; border-width: 2px; border-radius: 16px; min-width: 0; }
+.phone-layout .chead { padding: 6px 8px; gap: 6px; overflow-wrap: anywhere; }
+.phone-layout .chead small { font-size: 12px; }
+.phone-layout .ava { flex: none; width: 34px; height: 34px; font-size: 19px; }
+.phone-layout .bosshp { font-size: 9px; }
+.phone-layout .bosshp i, .phone-layout .bosshp.boss i { width: 11px; height: 8px; }
+.phone-layout .clog { flex: none; height: clamp(96px, 21dvh, 190px); padding: 6px; gap: 5px; }
+.phone-layout .bub { max-width: 92%; font-size: 15px; padding: 7px 9px; border-radius: 12px; overflow-wrap: anywhere; }
+.phone-layout .sms { position: static; order: 1; padding: 6px 8px; border-radius: 0; font-size: 14px; }
+.phone-layout .side { position: relative; gap: 6px; }
+.phone-layout .side > .muted { display: none; }
+.phone-layout .replies { gap: 6px; }
+.phone-layout .ctimer { position: absolute; top: 10px; right: 12px; font-size: 20px; }
+.phone-layout .reply { padding: 7px 10px; min-height: 44px; }
+.phone-layout .reply:hover { transform: none; }
+
+.phone-layout .arena {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: auto minmax(100px, 1fr) minmax(56px, auto);
+  grid-template-areas: "count count" "prompt prompt" "safe unsafe";
+  gap: 8px;
+  min-height: 200px;
+  padding: 8px;
+}
+
+.phone-layout .arena .prog { grid-area: count; position: static; transform: none; text-align: center; font-size: 16px; }
+.phone-layout .arena .fall { grid-area: prompt; position: relative; inset: auto; transform: none; place-self: center; width: min(100%, 550px); padding: 12px 12px 16px; font-size: clamp(16px, 4vw, 21px); overflow: hidden; }
+.phone-layout .fall::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 4px; background: var(--cyan); transform: scaleX(calc(1 - var(--sort-progress, 0))); transform-origin: left; }
+.phone-layout .lane { justify-content: center; align-items: center; padding: 8px; font-size: 16px; border-radius: 12px; }
+.phone-layout .lane.L { grid-area: safe; background: rgba(46, 229, 157, .16); }
+.phone-layout .lane.R { grid-area: unsafe; background: rgba(255, 59, 92, .16); }
+
+.phone-layout .circuit { flex-wrap: wrap; gap: 5px; padding: 0; }
+.phone-layout .wire { display: none; }
+.phone-layout .slot { flex: 1 1 calc(50% - 5px); min-height: 40px; padding: 5px; border-radius: 8px; font-size: 13px; }
+.phone-layout .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.phone-layout .tile { min-height: 58px; padding: 8px; border-radius: 12px; font-size: 15px; }
+.phone-layout .tile b { font-size: 17px; }
+.phone-layout .timeline p { padding: 7px 9px; font-size: 16px; }
+.phone-layout .bigkey { font-size: 65px; }
+.phone-layout .keycard .big, .phone-layout .starsbig { font-size: 26px; }
+.phone-layout .cert { padding: 14px 10px; border-width: 3px; }
+.phone-layout .cert h1, .phone-layout .cert .who { font-size: 23px; overflow-wrap: anywhere; }
+
+@media (min-width: 600px) and (max-height: 560px) {
+  .phone-layout header {
+    grid-template-columns: auto minmax(110px, 1fr) minmax(64px, 140px) auto auto auto auto auto;
+    grid-template-areas: "logo title shield score keys time mentor sound";
+  }
+
+  .phone-layout main.intro { flex-direction: row; align-items: center; }
+  .phone-layout .intro .lock { flex: 1; }
+  .phone-layout .scan .tools { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .phone-layout .scanwrap, .phone-layout .chatwrap { display: grid; grid-template-columns: 1fr 1fr; align-items: start; }
+  .phone-layout .clog { height: 32dvh; }
+  .phone-layout .arena { grid-template-rows: auto minmax(56px, 1fr) minmax(44px, auto); min-height: 140px; }
+  .phone-layout .caseboard { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}

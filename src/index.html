@@ -3,13 +3,25 @@
 <head>
 <meta charset="utf-8">
 <title>CyberQuest</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b1020">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="img/icon-192.png">
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="mobile.css">
 </head>
 <body>
 <div class="bg"></div><div class="streaks"></div><div class="grid"></div>
 <div id="app"></div>
 <div id="fx"></div>
+<dialog id="install-help" aria-labelledby="install-title" class="card stack">
+  <h2 id="install-title">Встановити CyberQuest</h2>
+  <p><b>iPhone:</b> у Safari натисни «Поділитися» → «На початковий екран» → «Відкрити як вебпрограму», якщо є такий перемикач.</p>
+  <p><b>Android:</b> у меню Chrome вибери «Встановити застосунок» або «Додати на головний екран».</p>
+  <p>Відкрий гру з іконки, поки є зв’язок, і дочекайся повідомлення «Готово до гри офлайн».</p>
+  <form method="dialog"><button class="btn ghost">Закрити</button></form>
+</dialog>
+<script src="webapp.js"></script>
 <script src="content/pack.js"></script>
 <script src="sfx.js"></script>
 <script src="world.js"></script>

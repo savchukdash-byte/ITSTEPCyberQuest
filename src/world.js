@@ -43,6 +43,7 @@ window.World = (function () {
   const P = { x: 24.5 * T, y: 9 * T, dir: 'down', moving: false, phase: 0, tx: null, ty: null };
   const keys = {};
   let last = 0, cam = { x: 0, y: 0 }, near = null, blocked = false, running = false, t = 0;
+  let zoom = 1;
   const particles = Array.from({ length: 40 }, () => ({ x: Math.random() * W * T, y: Math.random() * H * T, s: Math.random() * 0.5 + 0.2 }));
 
   const solidAt = (px, py) => {
@@ -152,6 +153,7 @@ window.World = (function () {
     const dt = Math.min(0.05, (now - last) / 1000 || 0); last = now; t += dt;
     if (!canvas || !canvas.isConnected) return;
     if (canvas.width !== host.clientWidth || canvas.height !== host.clientHeight) { canvas.width = host.clientWidth; canvas.height = host.clientHeight; }
+    zoom = cfg.compact() ? 0.8 : 1;
     update(dt); draw();
   }
 
@@ -192,17 +194,18 @@ window.World = (function () {
       const o = P.pending; P.pending = null;
       if (!blocked && Math.hypot(o.px - P.x, o.py - P.y) < 160) cfg.onInteract(o);
     }
-    cam.x = Math.max(0, Math.min(W * T - canvas.width, P.x - canvas.width / 2));
-    cam.y = Math.max(0, Math.min(H * T - canvas.height, P.y - canvas.height / 2));
-    if (W * T < canvas.width) cam.x = (W * T - canvas.width) / 2;
+    const viewWidth = canvas.width / zoom, viewHeight = canvas.height / zoom;
+    cam.x = Math.max(0, Math.min(W * T - viewWidth, P.x - viewWidth / 2));
+    cam.y = Math.max(0, Math.min(H * T - viewHeight, P.y - viewHeight / 2));
+    if (W * T < viewWidth) cam.x = (W * T - viewWidth) / 2;
   }
 
   function draw() {
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.fillStyle = '#070a14'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.translate(-Math.round(cam.x), -Math.round(cam.y));
+    ctx.setTransform(zoom, 0, 0, zoom, -Math.round(cam.x * zoom), -Math.round(cam.y * zoom));
     const x0 = Math.max(0, Math.floor(cam.x / T)), y0 = Math.max(0, Math.floor(cam.y / T));
-    const x1 = Math.min(W, x0 + Math.ceil(canvas.width / T) + 2), y1 = Math.min(H, y0 + Math.ceil(canvas.height / T) + 2);
+    const x1 = Math.min(W, x0 + Math.ceil(canvas.width / (T * zoom)) + 2), y1 = Math.min(H, y0 + Math.ceil(canvas.height / (T * zoom)) + 2);
     for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) drawTile(x, y);
     drawTable();
     // таблички будівель
@@ -221,16 +224,16 @@ window.World = (function () {
     particles.forEach((p) => { p.y -= p.s; if (p.y < 0) p.y = H * T; ctx.fillStyle = 'rgba(39,211,245,.35)'; ctx.fillRect(p.x, p.y, 2, 2); });
     if (P.tx !== null) { ctx.strokeStyle = 'rgba(39,211,245,.7)'; ctx.beginPath(); ctx.arc(P.tx, P.ty, 10 + Math.sin(t * 8) * 3, 0, 7); ctx.stroke(); }
     // підказка взаємодії
-    if (near && !blocked) label(`[E] ${near.verb}`, near.px, near.py - 78, '#FFD34D', 16);
+    if (near && !blocked) label(cfg.compact() ? near.verb : `[E] ${near.verb}`, near.px, near.py - 78, '#FFD34D', 16);
     // стрілка до цілі
     const goal = cfg.goal && cfg.goal();
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     if (goal) {
-      const gx = goal.x - cam.x, gy = goal.y - cam.y;
+      const gx = (goal.x - cam.x) * zoom, gy = (goal.y - cam.y) * zoom;
       const onScreen = gx > 40 && gy > 40 && gx < canvas.width - 40 && gy < canvas.height - 40;
       if (!onScreen) {
         const cx = canvas.width / 2, cy = canvas.height / 2, a = Math.atan2(gy - cy, gx - cx);
-        const r = Math.min(cx, cy) - 50, ax = cx + Math.cos(a) * r, ay = cy + Math.sin(a) * r;
+        const r = Math.max(0, Math.min(cx, cy) - 50), ax = cx + Math.cos(a) * r, ay = cy + Math.sin(a) * r;
         ctx.save(); ctx.translate(ax, ay); ctx.rotate(a);
         ctx.fillStyle = '#FFD34D'; ctx.shadowColor = '#FFD34D'; ctx.shadowBlur = 16;
         ctx.beginPath(); ctx.moveTo(22, 0); ctx.lineTo(-10, -14); ctx.lineTo(-4, 0); ctx.lineTo(-10, 14); ctx.closePath(); ctx.fill();
@@ -256,7 +259,7 @@ window.World = (function () {
   }
 
   function drawMinimap() {
-    const s = 4, mw = W * s, mh = H * s, ox = canvas.width - mw - 14, oy = canvas.height - mh - 14;
+    const s = cfg.compact() ? 2 : 4, mw = W * s, mh = H * s, ox = canvas.width - mw - 14, oy = canvas.height - mh - 14;
     ctx.fillStyle = 'rgba(11,16,32,.85)'; ctx.fillRect(ox - 4, oy - 4, mw + 8, mh + 8);
     ctx.strokeStyle = 'rgba(39,211,245,.6)'; ctx.strokeRect(ox - 4, oy - 4, mw + 8, mh + 8);
     for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
@@ -322,9 +325,9 @@ window.World = (function () {
       host = el;
       if (!canvas) {
         canvas = document.createElement('canvas'); ctx = canvas.getContext('2d');
-        canvas.addEventListener('mousedown', (e) => {
+        canvas.addEventListener('click', (e) => {
           if (blocked) return;
-          const r = canvas.getBoundingClientRect(), wx = e.clientX - r.left + cam.x, wy = e.clientY - r.top + cam.y;
+          const r = canvas.getBoundingClientRect(), wx = (e.clientX - r.left) / zoom + cam.x, wy = (e.clientY - r.top) / zoom + cam.y;
           if (near && Math.hypot(wx - near.px, wy - (near.py - 30)) < 50) { cfg.onInteract(near); return; }
           const hit = cfg.interactables().find((o) => Math.abs(wx - o.px) < 40 && wy > o.py - 105 && wy < o.py + 30);
           P.pending = hit || null;
@@ -336,7 +339,7 @@ window.World = (function () {
       if (!running) { running = true; last = performance.now(); requestAnimationFrame(frame); }
     },
     stop() { running = false; for (const k in keys) keys[k] = false; },
-    block(b) { blocked = b; if (b) { P.tx = null; P.path = null; for (const k in keys) keys[k] = false; } },
+    block(b) { blocked = b; if (b) { P.tx = null; P.path = null; P.pending = null; for (const k in keys) keys[k] = false; } },
     reset() { P.x = 24.5 * T; P.y = 9 * T; P.dir = 'down'; P.tx = null; P.path = null; },
     player: P,
     buildings,

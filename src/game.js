@@ -7,7 +7,7 @@
   const fxLayer = document.getElementById('fx');
   const MISSIONS = [...P.missions, { ...P.final, final: true }];
   const TOOLS = Object.keys(P.tools);
-  const LOGO = '../assets/logo.png';
+  const LOGO = 'img/logo.png';
   // Хронометраж (діти 9–14, ~30 хв). Можна перевизначити в pack.js → timing.
   const TM = Object.assign({
     targetMinutes: 30, chatSeconds: 25, bossChatSeconds: 18, sortSeconds: 9, finalSortSeconds: 7,
@@ -22,9 +22,13 @@
   S.metCmd = false; S.dialog = null;
   let SS = {};           // стан поточної сцени
   let timers = [];       // таймери сцени (чистяться при зміні)
+  let renderedView;
 
   // ---------- утиліти ----------
   const $ = (s) => document.querySelector(s);
+  const phoneLayout = () => document.documentElement.classList.contains('phone-layout');
+  const inputText = (desktop, phone) => `<span class="desktop-only">${desktop}</span><span class="mobile-only">${phone}</span>`;
+  const teamName = () => S.team.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
   const later = (fn, ms) => { const id = setTimeout(fn, ms); timers.push(id); return id; };
   const every = (fn, ms) => { const id = setInterval(fn, ms); timers.push(id); return id; };
   const clearTimers = () => { timers.forEach((t) => { clearTimeout(t); clearInterval(t); }); timers = []; };
@@ -74,8 +78,8 @@
     const sh = S.shield;
     return `<header>
       <img id="logo" src="${LOGO}" alt="ITSTEP">
-      <div class="ttl">${P.meta.title}<small>${P.meta.subtitle}${S.team ? ' · ' + S.team : ''}</small></div>
-      ${S.t0 ? `<div class="shield"><span>🛡 ЩИТ</span><div class="bar"><i id="shbar" style="width:${sh}%" class="${sh < 35 ? 'low' : ''}"></i></div><b id="shval">${sh}%</b></div>
+      <div class="ttl">${P.meta.title}<small>${P.meta.subtitle}${S.team ? ' · ' + teamName() : ''}</small></div>
+      ${S.t0 ? `<div class="shield" aria-label="ЩИТ"><span>🛡 <span class="desktop-only">ЩИТ</span></span><div class="bar"><i id="shbar" style="width:${sh}%" class="${sh < 35 ? 'low' : ''}"></i></div><b id="shval">${sh}%</b></div>
       <div class="score mono"><span id="score">${S.score}</span><small id="combo">${S.combo > 1 ? '×' + S.combo : ''}</small></div>` : '<div class="sp"></div>'}
       <div class="keys">${keys}</div>
       <div class="tm mono ${gameOver30() ? 'over' : ''}" id="tm" title="Час гри / ціль">${S.t0 ? fmt(elapsed()) + `<small> / ${TM.targetMinutes}:00</small>` : ''}</div>
@@ -213,7 +217,7 @@
       if (S.pause) { if (!pausedAt) pausedAt = now; SS.raf = requestAnimationFrame(step); return; }
       if (pausedAt) { t0 += now - pausedAt; pausedAt = 0; }
       SS.y = Math.min(1, (now - t0) / dur);
-      const c = $('#fall'); if (c) c.style.top = (8 + SS.y * 62) + "%";
+      const c = $('#fall'); if (c) c.style.setProperty('--sort-progress', SS.y);
       if (SS.y >= 1) { sortAnswer(null); return; }
       SS.raf = requestAnimationFrame(step);
     };
@@ -235,7 +239,7 @@
   function scanClick(i) {
     const sc = scene(), p = sc.parts[i];
     if (SS.found.includes(i)) return;
-    if (!SS.tool) { A.play('buzz'); toast('Спершу увімкни інструмент агента внизу екрана', 'warn'); return; }
+    if (!SS.tool) { A.play('buzz'); toast('Спершу увімкни інструмент агента', 'warn'); return; }
     const kind = p.f ? p.f.tool : p.tool;
     if (p.f && kind !== SS.tool) {
       A.play('click');
@@ -300,7 +304,7 @@
 
   function sceneHtml() {
     const sc = scene(), m = mission();
-    const head = `<div class="row"><span class="chip"><i></i>${m.final ? 'ФІНАЛ' : 'Місія ' + m.id}: ${m.title}</span>
+    const head = `<div class="row scene-meta"><span class="chip"><i></i>${m.final ? 'ФІНАЛ' : 'Місія ' + m.id}: ${m.title}</span>
       <span class="chip ghost">сцена ${S.sc + 1} / ${m.scenes.length}</span><div class="sp"></div>
       ${SS.time !== undefined && (sc.type === 'scan' || sc.type === 'lock') ? `<span class="stime mono" id="stime">${fmt(SS.time)}</span>` : ''}</div>
       <h2>${sc.title}</h2>${sc.task ? `<div class="muted">${sc.task}</div>` : ''}`;
@@ -317,10 +321,11 @@
         if (p.k === 'avatar') return `<div class="${cls}" data-act="part" data-i="${i}">${p.t}</div>`;
         return `<div class="${cls}" data-act="part" data-i="${i}">${p.t}${SS.found.includes(i) ? ' <b class="tag">ДОКАЗ</b>' : ''}</div>`;
       }).join('');
-      const tools = TOOLS.map((t) => `<button class="toolbtn ${SS.tool === t ? 'on' : ''} ${hintTool === t && SS.tool !== t ? 'hint' : ''}" data-act="tool" data-t="${t}">
+      const tools = TOOLS.map((t) => `<button class="toolbtn ${SS.tool === t ? 'on' : ''} ${hintTool === t && SS.tool !== t ? 'hint' : ''}" data-act="tool" data-t="${t}" aria-pressed="${SS.tool === t}">
         <span class="ti">${P.tools[t].icon}</span><span>${P.tools[t].name}<small>клавіша ${TOOLS.indexOf(t) + 1}</small></span></button>`).join('');
       const evidence = SS.found.map((i) => `<div class="ev">${P.tools[sc.parts[i].f.tool].icon} ${sc.parts[i].f.why}</div>`).join('');
       return `<main class="scan">${head}
+        <div class="tools">${tools}</div>
         <div class="scanwrap">
           <div class="device d-${sc.device} ${SS.tool ? 'scanning' : ''}">${sc.device === 'photo'
             ? `<div class="photobox" style="aspect-ratio:${sc.ar || '3 / 2'}">${sc.img ? `<img class="photo" src="${sc.img}" alt="" draggable="false" onerror="window.__cqImgFail && window.__cqImgFail(this)">` : photoSvg()}<div class="parts">${parts}</div></div>`
@@ -328,8 +333,7 @@
           <div class="board card"><h3>Дошка доказів <span class="mono">${SS.found.length} / ?</span></h3>${evidence || '<div class="muted">Поки порожньо…</div>'}
             ${hintOn ? `<div class="helpnote">💡 Командир: спробуй <b>${P.tools[hintTool].icon} ${P.tools[hintTool].name}</b> — там ще є доказ.</div>` : ''}
             <div class="verd"><button class="btn green ${hintVerdict === '0' ? 'hint' : ''}" data-act="verdict" data-v="0">✔ БЕЗПЕЧНО</button><button class="btn red ${hintVerdict === '1' ? 'hint' : ''}" data-act="verdict" data-v="1">⚠ ФЕЙК</button></div></div>
-        </div>
-        <div class="tools">${tools}</div></main>`;
+        </div></main>`;
     }
 
     if (sc.type === 'chat') {
@@ -356,12 +360,12 @@
       const l = sc.left || 'Безпечно', r = sc.right || 'Небезпечно';
       return `<main class="sortscene">${head}
         <div class="arena">
-          <div class="lane L" data-act="sort" data-v="0"><span>← ${l}</span></div>
-          <div class="lane R" data-act="sort" data-v="1"><span>${r} →</span></div>
-          ${it ? `<div class="fall" id="fall" style="top:${8 + SS.y * 62}%">${it.t}</div>` : ''}
+          <button class="lane L" data-act="sort" data-v="0"><span>${inputText('← ', '')}${l}</span></button>
+          <button class="lane R" data-act="sort" data-v="1"><span>${r}${inputText(' →', '')}</span></button>
+          ${it ? `<div class="fall" id="fall" style="--sort-progress:${SS.y}">${it.t}</div>` : ''}
           <div class="prog mono">${Math.min(SS.i + 1, sc.items.length)} / ${sc.items.length}</div>
         </div>
-        <div class="muted center">Клавіші ← / → або натисни на половину екрана</div></main>`;
+        <div class="muted center desktop-only">Клавіші ← / → або натисни на половину екрана</div></main>`;
     }
 
     if (sc.type === 'lock') {
@@ -402,6 +406,7 @@
     playerLook: { body: '#2F6BFF', glow: true, hair: '#1b1b1b', pants: '#141a33' },
     gateOpen: () => S.done >= 6,
     done: () => S.done,
+    compact: phoneLayout,
     npcState,
     onStep: () => A.play('step'),
     interactables: () => {
@@ -430,7 +435,7 @@
     if (o.kind === 'gate') { say('🔒 Серверна «Соня_2014»', [`ДОСТУП ЗАБОРОНЕНО. Потрібно 6 ключів-правил. Зібрано: ${S.done} / 6.`]); return; }
     const n = o.ref;
     if (n.id === 'cmd') {
-      if (!S.metCmd) say(n.name, [...P.intro.commander, 'Почни з Тимура біля школи — у нього підозрілий лист.', 'Жовта стрілка й «!» над головою покажуть, куди йти. Ходи — WASD або стрілки, говорити — E.', 'А тут, на столі планування, — дошка нашої справи.'], null, () => { S.metCmd = true; });
+      if (!S.metCmd) say(n.name, [...P.intro.commander, 'Почни з Тимура біля школи — у нього підозрілий лист.', 'Жовта стрілка й «!» над головою покажуть, куди йти. ' + inputText('Ходи — WASD або стрілки, говорити — E.', 'Торкнися землі, щоб іти, або персонажа, щоб поговорити.'), 'А тут, на столі планування, — дошка нашої справи.'], null, () => { S.metCmd = true; });
       else say(n.name, S.done >= 6 ? ['Усі 6 ключів у тебе! Ворота серверної відкрито. Знешкодь ядро «Соня_2014»!'] : [`Ключів: ${S.done} / 6. Тримайся, агенте! Наступна ціль: ${giverOf(S.done).name}.`]);
       return;
     }
@@ -453,6 +458,9 @@
   // ---------- ОСНОВНИЙ РЕНДЕР ----------
   const MAPPOS = [[10, 26], [26, 74], [42, 26], [58, 74], [74, 26], [90, 74], [50, 50]];
   function render() {
+    const view = `${S.screen}-${S.m}-${S.sc}`;
+    const scroll = view === renderedView ? app.querySelector('main')?.scrollTop : 0;
+    renderedView = view;
     let h = hud();
     switch (S.screen) {
       case 'start':
@@ -461,9 +469,11 @@
           <h1 class="glitch" data-t="${P.meta.title}">${P.meta.title}</h1>
           <h3 class="muted">${P.meta.subtitle} · ${P.meta.org}</h3>
           <div class="card stack" style="text-align:left;max-width:640px;margin:0 auto">
-            <label>Твоє ім'я агента</label><input type="text" id="team" maxlength="24" placeholder="Напр.: Агент Нуль" value="${S.team}">
+            <label for="team">Твоє ім'я агента</label><input type="text" id="team" maxlength="24" placeholder="Напр.: Агент Нуль" value="${teamName()}">
           </div>
           <button class="btn big" data-act="begin">▶ ПОЧАТИ РОЗСЛІДУВАННЯ</button>
+          <button class="btn ghost web-install" data-web-install>Встановити гру</button>
+          <small class="muted offline-status" role="status">Готово до гри офлайн</small>
         </div></main>`;
         break;
       case 'intro': {
@@ -472,16 +482,16 @@
           <div class="clock">${I.time}</div>
           ${I.notes.slice(0, SS.n).map((n) => `<div class="note"><i>?</i><div><b>${n.from}</b><span>${n.t}</span></div><small>зараз</small></div>`).join('')}
         </div>
-        <div class="cmd">${SS.n >= I.notes.length ? `<div class="cmdh">🛡 ЩИТ · ТРИВОГА</div><p>Агенте ${S.team}, терміново до штабу! Командир чекає.</p><button class="btn big" data-act="world">▶ ДО ШТАБУ</button>` : ''}</div></main>`;
+        <div class="cmd">${SS.n >= I.notes.length ? `<div class="cmdh">🛡 ЩИТ · ТРИВОГА</div><p>Агенте ${teamName()}, терміново до штабу! Командир чекає.</p><button class="btn big" data-act="world">▶ ДО ШТАБУ</button>` : ''}</div></main>`;
         break;
       }
       case 'world': {
         const d = S.dialog;
         h += `<main class="worldscreen"><div id="worldhost"></div>
           <div class="objective"><b>🎯 ЦІЛЬ</b>${goalText()}</div>
-          <div class="controls">WASD / стрілки — ходити · E — говорити · клік мишкою — йти туди</div>
+          <div class="controls">${inputText('WASD / стрілки — ходити · E — говорити · клік мишкою — йти туди', 'Торкнися мапи, щоб іти, або персонажа, щоб говорити')}</div>
           ${d ? `<div class="dlg" data-act="dnext"><div class="dname">${d.name}</div><div class="dtext">${d.lines[d.i]}</div>
-            <div class="dbtns">${d.i === d.lines.length - 1 && d.choices ? d.choices.map((c, i) => `<button class="btn ${i ? 'ghost' : ''}" data-act="dchoice" data-i="${i}">${c.t}</button>`).join('') : '<span class="muted">E / клік — далі ▸</span>'}</div></div>` : ''}
+            <div class="dbtns">${d.i === d.lines.length - 1 && d.choices ? d.choices.map((c, i) => `<button class="btn ${i ? 'ghost' : ''}" data-act="dchoice" data-i="${i}">${c.t}</button>`).join('') : inputText('<span class="muted">E / клік — далі ▸</span>', '<button class="btn" data-act="dnext">Далі ▸</button>')}</div></div>` : ''}
         </main>`;
         break;
       }
@@ -492,8 +502,8 @@
           <div class="caseboard"><svg viewBox="0 0 100 100" preserveAspectRatio="none">${links}</svg>
           ${MISSIONS.map((m, i) => {
             const [x, y] = MAPPOS[i], st = i < S.done ? 'done' : i === S.done ? 'open' : 'lock', g = giverOf(i);
-            if (m.final) return `<div class="pin suspect ${S.done >= 6 ? 'open' : ''}" style="left:${x}%;top:${y}%"><div class="ph">${S.done >= 6 ? '🤖' : '?'}</div><b>«Соня_2014»</b><small>${S.done >= 6 ? 'Знайдено: серверна вежа' : 'Особа невідома'}</small></div>`;
-            return `<div class="pin ${st}" style="left:${x}%;top:${y}%"><div class="ph">${st === 'lock' ? '🔒' : m.icon}</div><b>${m.title}</b><small>${g.name}</small>
+            if (m.final) return `<div class="pin suspect ${S.done >= 6 ? 'open' : ''}" style="--pin-x:${x}%;--pin-y:${y}%"><div class="ph">${S.done >= 6 ? '🤖' : '?'}</div><b>«Соня_2014»</b><small>${S.done >= 6 ? 'Знайдено: серверна вежа' : 'Особа невідома'}</small></div>`;
+            return `<div class="pin ${st}" style="--pin-x:${x}%;--pin-y:${y}%"><div class="ph">${st === 'lock' ? '🔒' : m.icon}</div><b>${m.title}</b><small>${g.name}</small>
               ${st === 'done' ? `<div class="kk">🔑 ${m.key}</div><div class="cl">🧩 ${m.clue}</div><span class="stars">${'★'.repeat(S.stars[i] || 0)}${'☆'.repeat(3 - (S.stars[i] || 0))}</span>` : st === 'open' ? '<div class="kk">▶ Активна справа</div>' : ''}</div>`;
           }).join('')}</div></main>`;
         break;
@@ -526,7 +536,7 @@
         h += `<main><div class="center stack"><div class="cert">
           <img src="${LOGO}" style="height:70px;filter:invert(1)">
           <h1>СЕРТИФІКАТ «${rank.toUpperCase()}»</h1>
-          <div>Агент</div><div class="who">${S.team}</div>
+          <div>Агент</div><div class="who">${teamName()}</div>
           <div>розкриває справу «Соня_2014», здобуває 6 ключів і знешкоджує бот-фабрику</div>
           <h3 style="margin-top:12px">Бали: ${S.score} · Зірки: ${tot} / 21 · Час: ${fmt(elapsed())}</h3>
           <div style="margin-top:12px;font-weight:800">${P.rules}</div></div>
@@ -537,6 +547,7 @@
     if (S.pause) h += `<div class="overlay"><div class="card stack"><h2>🙋 Ментор іде до вас</h2><div class="muted">Гра на паузі.</div><button class="btn" data-act="resume">Продовжити</button></div></div>`;
     if (S.exitOpen) h += `<div class="overlay"><div class="card stack"><h3>Вийти з гри?</h3><div class="muted">Прогрес не збережеться.</div><div class="row" style="justify-content:center"><button class="btn" data-act="exit">Вийти</button><button class="btn ghost" data-act="cancelExit">Скасувати</button></div></div></div>`;
     app.innerHTML = h;
+    if (scroll) app.querySelector('main').scrollTop = scroll;
     const cl = $('#clog'); if (cl) cl.scrollTop = cl.scrollHeight;
     if (S.screen === 'world') { W.attach($('#worldhost')); W.block(!!(S.dialog || S.pause || S.exitOpen)); } else W.stop();
   }
@@ -553,6 +564,7 @@
     const t = e.target.closest('[data-act],#logo');
     if (!t) return;
     if (t.id === 'logo') {
+      if (!window.cq) return;
       const now = Date.now(); S.logoClicks = now - S.logoT > 3000 ? 1 : S.logoClicks + 1; S.logoT = now;
       if (S.logoClicks >= 5) { S.exitOpen = true; S.logoClicks = 0; render(); }
       return;
@@ -561,7 +573,7 @@
     const a = t.dataset.act, i = +t.dataset.i;
     if (!['part', 'reply', 'sort', 'lock', 'verdict'].includes(a)) A.play('click');
     switch (a) {
-      case 'mute': A.toggle(); break;
+      case 'mute': t.textContent = A.toggle() ? '🔇' : '🔊'; return;
       case 'begin': S.team = ($('#team').value || '').trim() || 'Агент'; S.t0 = Date.now(); A.startMusic(); A.play('whoosh'); playIntro(); return;
       case 'world': A.play('whoosh'); enterWorld(); return;
       case 'dnext': dialogNext(); return;
