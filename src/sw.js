@@ -1,6 +1,6 @@
 const CACHE_PREFIX = 'cyberquest-';
 // Increase the version when any precached game file changes.
-const CACHE_NAME = CACHE_PREFIX + 'v1';
+const CACHE_NAME = CACHE_PREFIX + 'v2';
 const scope = self.registration.scope;
 const entry = new URL('index.html', scope).href;
 const audio = new URL('audio/music.mp3', scope).href;

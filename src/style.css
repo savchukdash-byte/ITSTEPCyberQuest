@@ -265,6 +265,83 @@ input:focus{border-color:var(--cyan)}
 .pin.suspect.open{border-style:solid;box-shadow:0 0 40px var(--red)}
 .mentor{position:fixed;right:20px;top:84px;z-index:40;font:inherit;font-size:15px;font-weight:700;color:var(--muted);background:rgba(18,26,51,.8);border:1px solid rgba(255,255,255,.2);border-radius:99px;padding:8px 16px;cursor:pointer}
 
+/* ---------- невеликі екрани ноутбуків (десктопний режим, не телефонний) ----------
+   Раніше сцена стискалась до висоти вікна і все, що не влазило, обрізалось.
+   Тепер main прокручується, а блоки не стають меншими за свій вміст. */
+html:not(.phone-layout) main{overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;padding-bottom:6px}
+html:not(.phone-layout) main.worldscreen{overflow:hidden;padding-bottom:0}
+html:not(.phone-layout) .scanwrap{min-height:auto}
+html:not(.phone-layout) .board{overflow:visible;min-width:240px}
+html:not(.phone-layout) .verd{grid-template-columns:repeat(auto-fit,minmax(120px,1fr))}
+html:not(.phone-layout) .verd .btn{padding:12px 10px}
+/* інструменти сканування завжди видно внизу, навіть коли сцену прокручено */
+html:not(.phone-layout) .scan .tools{position:sticky;bottom:-6px;z-index:3;padding:10px 0 6px;background:linear-gradient(rgba(11,16,32,0),var(--bg) 35%)}
+html:not(.phone-layout) .chatwrap{min-height:auto}
+html:not(.phone-layout) .phone{min-height:340px}
+html:not(.phone-layout) .clog{flex:1 1 0;height:0}
+html:not(.phone-layout) .side{min-width:0}
+html:not(.phone-layout) .arena{flex:1 0 300px}
+html:not(.phone-layout) .tiles{flex:none}
+html:not(.phone-layout) .caseboard{flex:1 0 460px}
+@media (max-height:820px){
+  html:not(.phone-layout) #app{padding:10px 22px}
+  html:not(.phone-layout) header{gap:14px;padding-bottom:8px}
+  html:not(.phone-layout) header img{height:40px}
+  html:not(.phone-layout) main{gap:8px}
+  html:not(.phone-layout) h1{font-size:44px}
+  html:not(.phone-layout) h2{font-size:26px}
+  html:not(.phone-layout) h3{font-size:19px}
+  html:not(.phone-layout) .glitch{font-size:64px}
+  html:not(.phone-layout) .glitch.red{font-size:54px}
+  html:not(.phone-layout) .herologo{height:70px}
+  html:not(.phone-layout) .card{padding:14px 18px}
+  html:not(.phone-layout) .btn.big{font-size:22px;padding:13px 30px}
+  html:not(.phone-layout) .device{padding:14px 18px}
+  html:not(.phone-layout) .device.d-photo{padding:0}
+  html:not(.phone-layout) .parts{gap:6px}
+  html:not(.phone-layout) .part{padding:7px 12px}
+  html:not(.phone-layout) .k-title,html:not(.phone-layout) .k-name{font-size:23px}
+  html:not(.phone-layout) .k-avatar{width:84px;height:84px;font-size:52px}
+  html:not(.phone-layout) .toolbtn{padding:8px 12px;font-size:16px}
+  html:not(.phone-layout) .toolbtn .ti{font-size:24px}
+  html:not(.phone-layout) .ev{font-size:15px;padding:8px 10px}
+  html:not(.phone-layout) .bub{font-size:18px;padding:10px 14px}
+  html:not(.phone-layout) .reply{padding:10px 14px}
+  html:not(.phone-layout) .ctimer{font-size:28px}
+  html:not(.phone-layout) .tile{min-height:88px;font-size:19px}
+  html:not(.phone-layout) .slot{min-height:60px}
+  html:not(.phone-layout) .fall{font-size:21px;padding:16px 20px}
+  html:not(.phone-layout) .lane{font-size:24px}
+  html:not(.phone-layout) .timeline p{font-size:19px}
+  html:not(.phone-layout) .intro .lock{min-height:0;padding:22px}
+  html:not(.phone-layout) .clock{font-size:76px;margin-bottom:12px}
+  html:not(.phone-layout) .cmd p{font-size:21px}
+  html:not(.phone-layout) .dtext{font-size:21px;min-height:0}
+  html:not(.phone-layout) .bigkey{font-size:80px}
+  html:not(.phone-layout) .keycard .big{font-size:32px}
+  html:not(.phone-layout) .starsbig{font-size:44px}
+  html:not(.phone-layout) .cert{padding:18px 34px}
+  html:not(.phone-layout) .cert .who{font-size:36px}
+  html:not(.phone-layout) .cert h1{font-size:32px}
+}
+@media (max-height:650px){
+  html:not(.phone-layout) body{font-size:17px}
+  html:not(.phone-layout) h1{font-size:36px}
+  html:not(.phone-layout) h2{font-size:22px}
+  html:not(.phone-layout) .glitch{font-size:52px}
+  html:not(.phone-layout) .herologo{height:54px}
+  html:not(.phone-layout) header img{height:34px}
+  html:not(.phone-layout) .tile{min-height:70px;font-size:17px}
+  html:not(.phone-layout) .clock{font-size:60px}
+  html:not(.phone-layout) .phone{min-height:300px}
+}
+@media (max-width:1150px){
+  html:not(.phone-layout) #app{padding-left:16px;padding-right:16px}
+  html:not(.phone-layout) header{gap:10px}
+  html:not(.phone-layout) .toolbtn small{display:none}
+  html:not(.phone-layout) .scanwrap,html:not(.phone-layout) .chatwrap{gap:10px}
+}
+
 .mobile-only,.web-install,.offline-status,#install-help:not([open]){display:none}
 .can-install .web-install{display:block;align-self:center}
 .offline-ready .offline-status{display:block}
